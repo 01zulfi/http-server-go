@@ -22,15 +22,27 @@ func main() {
 	}
 
 	buff := make([]byte, 2048)
-	conn.Read(buff)
+	_, err = conn.Read(buff)
+
+	if err != nil {
+		fmt.Println("Error reading request: ", err.Error())
+		os.Exit(1)
+	}
+
 	request := string(buff)
 	requestTarget := strings.Split(request, " ")[1]
 
+	var response string
 	if requestTarget == "/" {
-		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+		response = "HTTP/1.1 200 OK\r\n\r\n"
+	} else if strings.HasPrefix(requestTarget, "/echo") {
+		echoString := strings.Split(requestTarget, "/echo/")[1]
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
+
 	} else {
-		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+		response = "HTTP/1.1 404 Not Found\r\n\r\n"
 	}
 
+	conn.Write([]byte(response))
 	conn.Close()
 }
