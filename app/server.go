@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -31,6 +32,7 @@ func main() {
 
 	request := string(buff)
 	requestTarget := strings.Split(request, " ")[1]
+	headers := strings.Split(request, "\r\n")[1:]
 
 	var response string
 	if requestTarget == "/" {
@@ -39,6 +41,10 @@ func main() {
 		echoString := strings.Split(requestTarget, "/echo/")[1]
 		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
 
+	} else if strings.HasPrefix(requestTarget, "/user-agent") {
+		userAgentIndex := slices.IndexFunc(headers, func(h string) bool { return strings.Contains(h, "User-Agent: ") })
+		userAgent := strings.TrimPrefix(headers[userAgentIndex], "User-Agent: ")
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(userAgent), userAgent)
 	} else {
 		response = "HTTP/1.1 404 Not Found\r\n\r\n"
 	}
