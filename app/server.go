@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -10,6 +11,9 @@ import (
 
 func main() {
 	fmt.Println("Logs from your program will appear here!")
+
+	directoryPtr := flag.String("directory", "", "a string")
+	flag.Parse()
 
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 
@@ -53,6 +57,15 @@ func main() {
 				userAgentIndex := slices.IndexFunc(headers, func(h string) bool { return strings.Contains(h, "User-Agent: ") })
 				userAgent := strings.TrimPrefix(headers[userAgentIndex], "User-Agent: ")
 				response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(userAgent), userAgent)
+			} else if strings.HasPrefix(requestTarget, "/files") {
+				fileName := strings.TrimPrefix(requestTarget, "/files/")
+				contents, err := os.ReadFile(*directoryPtr + "/" + fileName)
+
+				if err != nil {
+					response = "HTTP/1.1 404 Not Found\r\n\r\n"
+				} else {
+					response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s", len(contents), contents)
+				}
 			} else {
 				response = "HTTP/1.1 404 Not Found\r\n\r\n"
 			}
