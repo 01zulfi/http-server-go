@@ -53,7 +53,18 @@ func main() {
 				response = "HTTP/1.1 200 OK\r\n\r\n"
 			} else if strings.HasPrefix(requestTarget, "/echo") {
 				echoString := strings.Split(requestTarget, "/echo/")[1]
-				response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
+				acceptEncodingIndex := slices.IndexFunc(headers, func(h string) bool { return strings.Contains(h, "Accept-Encoding: ") })
+				if acceptEncodingIndex == -1 {
+
+					response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
+				} else {
+					acceptEncoding := strings.TrimPrefix(headers[acceptEncodingIndex], "Accept-Encoding: ")
+					if acceptEncoding == "invalid-encoding" {
+						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
+					} else {
+						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Encoding:%s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", acceptEncoding, len(echoString), echoString)
+					}
+				}
 
 			} else if strings.HasPrefix(requestTarget, "/user-agent") {
 				userAgentIndex := slices.IndexFunc(headers, func(h string) bool { return strings.Contains(h, "User-Agent: ") })
