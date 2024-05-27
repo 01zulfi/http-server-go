@@ -59,10 +59,10 @@ func main() {
 					response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
 				} else {
 					acceptEncoding := strings.TrimPrefix(headers[acceptEncodingIndex], "Accept-Encoding: ")
-					if acceptEncoding == "invalid-encoding" {
-						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
+					if strings.Contains(acceptEncoding, "gzip") {
+						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
 					} else {
-						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Encoding:%s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", acceptEncoding, len(echoString), echoString)
+						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
 					}
 				}
 
