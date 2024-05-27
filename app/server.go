@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"flag"
 	"fmt"
 	"net"
@@ -60,7 +61,11 @@ func main() {
 				} else {
 					acceptEncoding := strings.TrimPrefix(headers[acceptEncodingIndex], "Accept-Encoding: ")
 					if strings.Contains(acceptEncoding, "gzip") {
-						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
+						var b bytes.Buffer
+						enc := gzip.NewWriter(&b)
+						enc.Write([]byte(echoString))
+						enc.Close()
+						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(b.String()), b.String())
 					} else {
 						response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(echoString), echoString)
 					}
